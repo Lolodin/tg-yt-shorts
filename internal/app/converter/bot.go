@@ -54,7 +54,7 @@ func (b *Bot) handleMsg(update tgbotapi.Update) error {
 	case "y":
 		by, err := b.convert.Covert(update.Message.CommandArguments())
 		if err != nil {
-			fmt.Print(err)
+			_, err := b.b.Send(tgbotapi.NewMessage(update.Message.Chat.ID, err.Error()))
 			return err
 		}
 		vcf := tgbotapi.NewVideo(update.Message.Chat.ID, tgbotapi.FileBytes{Bytes: by,
