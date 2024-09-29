@@ -5,6 +5,7 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"os"
+	"regexp"
 )
 
 type Bot struct {
@@ -14,7 +15,7 @@ type Bot struct {
 }
 
 func NewBot(convert Converter) *Bot {
-	b, err := os.ReadFile("./config/tsconfig.json")
+	b, err := os.ReadFile("./root/tsconfig.json")
 	if err != nil {
 		return nil
 	}
@@ -50,20 +51,37 @@ func (b *Bot) Run() error {
 
 func (b *Bot) handleMsg(update tgbotapi.Update) error {
 
-	switch update.Message.Command() {
-	case "y":
-		by, err := b.convert.Covert(update.Message.CommandArguments())
-		if err != nil {
-			_, err := b.b.Send(tgbotapi.NewMessage(update.Message.Chat.ID, err.Error()))
+	by, err := b.convert.Covert(update.Message.Text)
+	if err != nil {
+		url, e := ExtractFirstURL(err.Error())
+		if e != nil {
+			_, err = b.b.Send(tgbotapi.NewMessage(update.Message.Chat.ID, err.Error()))
 			return err
 		}
-		vcf := tgbotapi.NewVideo(update.Message.Chat.ID, tgbotapi.FileBytes{Bytes: by,
-			Name: fmt.Sprintf("%p", by)})
-		_, err = b.b.Send(vcf)
-		fmt.Println(err)
-		return err
+		_, err := b.b.Send(tgbotapi.NewMessage(update.Message.Chat.ID, url))
 
+		return err
+	}
+	vcf := tgbotapi.NewVideo(update.Message.Chat.ID, tgbotapi.FileBytes{Bytes: by,
+		Name: fmt.Sprintf("%p", by)})
+	_, err = b.b.Send(vcf)
+	fmt.Println(err)
+	return err
+
+}
+
+func ExtractFirstURL(text string) (string, error) {
+	// Регулярное выражение для поиска URL
+	re := regexp.MustCompile(`https?://[^\s/$.?#].[^\s]*`)
+
+	// Находим все совпадения
+	matches := re.FindStringSubmatch(text)
+
+	// Если совпадений нет, возвращаем ошибку
+	if len(matches) == 0 {
+		return "", fmt.Errorf("URL not found")
 	}
 
-	return nil
+	// Возвращаем первое совпадение
+	return matches[0], nil
 }

@@ -42,18 +42,7 @@ func (v *Video) Covert(url string) ([]byte, error) {
 }
 
 func getFormat(vid *youtube.Video) *youtube.Format {
-	format := vid.Formats.WithAudioChannels().FindByQuality("720p")
-	if format == nil {
-		format = vid.Formats.FindByQuality("large")
-	}
+	format := vid.Formats.WithAudioChannels()
 
-	if format == nil {
-		format = vid.Formats.FindByQuality("medium")
-	}
-
-	if format == nil {
-		format = vid.Formats.FindByQuality("small")
-	}
-
-	return format
+	return &format[0]
 }

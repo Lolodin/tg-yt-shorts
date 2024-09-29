@@ -91,7 +91,7 @@ func (b *Bot) handleMsg(update tgbotapi.Update) error {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, message.String())
 		msg.ParseMode = "HTML"
 
-		_, err := b.b.Send(message)
+		_, err = b.b.Send(msg)
 		if err != nil {
 			return err
 		}
