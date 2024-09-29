@@ -30,6 +30,7 @@ func (v *Video) Covert(url string) ([]byte, error) {
 	}
 	format := getFormat(vid)
 	stream, _, err := v.client.GetStreamContext(ctx, vid, format)
+	defer stream.Close()
 	if err != nil {
 		return nil, err
 	}
